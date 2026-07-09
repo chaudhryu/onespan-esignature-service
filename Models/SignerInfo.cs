@@ -12,5 +12,11 @@ namespace OneSpanESignatureService.Models
 
         [JsonPropertyName("email")]
         public string Email { get; set; } = string.Empty;
+
+        [JsonPropertyName("signingOrder")]
+        public int SigningOrder { get; set; } = 0;
+
+        [JsonPropertyName("roleId")]
+        public string? RoleId { get; set; }
     }
 }

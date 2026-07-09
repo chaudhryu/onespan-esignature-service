@@ -10,6 +10,7 @@ namespace OneSpanESignatureService.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
+    [ServiceFilter(typeof(Security.ApiKeyAuthAttribute))]
     public class PackagesController : ControllerBase
     {
         private readonly IOneSpanService _oneSpanService;
@@ -24,9 +25,9 @@ namespace OneSpanESignatureService.Controllers
         {
             try
             {
-                if (request.Document == null || string.IsNullOrWhiteSpace(request.WorkflowName) || string.IsNullOrWhiteSpace(request.SignersJson))
+                if (request.Documents == null || request.Documents.Count == 0 || string.IsNullOrWhiteSpace(request.WorkflowName) || string.IsNullOrWhiteSpace(request.SignersJson))
                 {
-                    return BadRequest(new { error = "Missing required fields or document file." });
+                    return BadRequest(new { error = "Missing required fields or document files." });
                 }
 
                 // Parse signers
@@ -45,16 +46,18 @@ namespace OneSpanESignatureService.Controllers
                     return BadRequest(new { error = "Signers list cannot be empty." });
                 }
 
-                string packageId = await _oneSpanService.CreateAndSendSignatureTransactionAsync(
+                var result = await _oneSpanService.CreateAndSendSignatureTransactionAsync(
                     request.WorkflowName, 
                     signers, 
-                    request.Document);
+                    request.Documents,
+                    request.CallbackUrl);
 
                 return Created(string.Empty, new
                 {
                     success = true,
                     message = "Signature transaction successfully initialized and sent.",
-                    packageId = packageId
+                    packageId = result.PackageId,
+                    signingUrl = result.SigningUrl
                 });
             }
             catch (Exception ex)

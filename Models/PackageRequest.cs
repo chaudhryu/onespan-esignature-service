@@ -11,7 +11,10 @@ namespace OneSpanESignatureService.Models
         [FromForm(Name = "signers")]
         public string SignersJson { get; set; } = string.Empty;
 
-        [FromForm(Name = "document")]
-        public IFormFile? Document { get; set; }
+        [FromForm(Name = "documents")]
+        public System.Collections.Generic.List<IFormFile>? Documents { get; set; }
+
+        [FromForm(Name = "callbackUrl")]
+        public string? CallbackUrl { get; set; }
     }
 }

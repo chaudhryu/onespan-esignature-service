@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Signing Test</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="text"], input[type="email"], input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .section-title { margin-top: 25px; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 15px; }
+        
+        /* Modal Styles */
+        #signing-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; height: 90%; max-width: 1200px; border-radius: 8px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        .modal-header { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { margin: 0; font-size: 18px; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; padding: 0; line-height: 1; }
+        iframe { flex: 1; width: 100%; border: none; }
+        #status-message { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HR Onboarding Form</h1>
+    <p>Fill out this form to send the document to the employee. As the manager, you will sign it first.</p>
+
+    <form id="signature-form">
+        <div class="form-group">
+            <label for="workflowName">Transaction Name</label>
+            <input type="text" id="workflowName" value="New Hire Contract" required>
+        </div>
+        
+        <div class="section-title">Manager Details (Signs Now)</div>
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="mFirstName" value="Jane" required>
+        </div>
+        <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="mLastName" value="Doe" required>
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="mEmail" value="manager@example.com" required>
+        </div>
+
+        <div class="section-title">Employee Details (Signs Later via Email)</div>
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="eFirstName" value="John" required>
+        </div>
+        <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="eLastName" value="Smith" required>
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="eEmail" value="employee@example.com" required>
+        </div>
+
+        <div class="section-title">Document</div>
+        <div class="form-group">
+            <label>Upload PDF Contract</label>
+            <input type="file" id="documentFile" accept="application/pdf" required>
+        </div>
+
+        <button type="submit" id="submitBtn">Submit & Sign Document</button>
+    </form>
+
+    <div id="status-message"></div>
+</div>
+
+<!-- Full Screen Modal for Embedded Signing -->
+<div id="signing-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Sign Document</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <iframe id="signing-iframe" src=""></iframe>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('signature-form');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusMsg = document.getElementById('status-message');
+    const modal = document.getElementById('signing-modal');
+    const iframe = document.getElementById('signing-iframe');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+        statusMsg.style.display = 'none';
+
+        try {
+            // Construct the Signers Array
+            const signers = [
+                {
+                    firstName: document.getElementById('mFirstName').value,
+                    lastName: document.getElementById('mLastName').value,
+                    email: document.getElementById('mEmail').value,
+                    signingOrder: 1 // Manager signs first
+                },
+                {
+                    firstName: document.getElementById('eFirstName').value,
+                    lastName: document.getElementById('eLastName').value,
+                    email: document.getElementById('eEmail').value,
+                    signingOrder: 2 // Employee signs second
+                }
+            ];
+
+            // Build FormData
+            const formData = new FormData();
+            formData.append('workflowName', document.getElementById('workflowName').value);
+            formData.append('signers', JSON.stringify(signers));
+            formData.append('document', document.getElementById('documentFile').files[0]);
+
+            // Call your C# API
+            const response = await fetch('/api/v1/Packages', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Show the embedded signing modal with the returned URL
+                openModal(data.signingUrl);
+            } else {
+                showStatus(data.error || data.details || 'An error occurred', false);
+            }
+        } catch (error) {
+            console.error(error);
+            showStatus('Failed to connect to the server.', false);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit & Sign Document';
+        }
+    });
+
+    function openModal(url) {
+        iframe.src = url;
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        iframe.src = '';
+        showStatus('Signing ceremony closed. Package sent successfully!', true);
+    }
+
+    function showStatus(message, isSuccess) {
+        statusMsg.textContent = message;
+        statusMsg.className = isSuccess ? 'success' : 'error';
+        statusMsg.style.display = 'block';
+    }
+
+    // Listen for events from the OneSpan iFrame
+    window.addEventListener('message', function(event) {
+        // OneSpan fires postMessage events. We check if the user completed signing.
+        if (event.data && typeof event.data === 'string') {
+            if (event.data.includes('ESL:MESSAGE:SUCCESS:SIGNER_COMPLETE')) {
+                console.log('User finished signing!');
+                closeModal();
+                showStatus('Document signed successfully! An email has been sent to the employee.', true);
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
