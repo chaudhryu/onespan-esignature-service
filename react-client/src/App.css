@@ -1,28 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --primary-color: #4f46e5;
+  --primary: #4f46e5;
   --primary-hover: #4338ca;
-  --bg-gradient: linear-gradient(135deg, #f6f8fd 0%, #f1f5f9 100%);
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --text-main: #1e293b;
+  --bg-color: #f8fafc;
+  --panel-bg: #ffffff;
+  --border: #e2e8f0;
+  --text-main: #0f172a;
   --text-muted: #64748b;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg-gradient);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
   color: var(--text-main);
   margin: 0;
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 2rem;
+  align-items: flex-start;
+  padding: 3rem 1rem;
   box-sizing: border-box;
 }
 
@@ -34,20 +33,12 @@ body {
 
 .app-container {
   width: 100%;
-  max-width: 650px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
+  max-width: 700px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
   padding: 2.5rem;
-  box-shadow: var(--shadow-lg);
-  animation: slideUp 0.6s ease-out;
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  box-shadow: var(--shadow-md);
 }
 
 header {
@@ -57,11 +48,9 @@ header {
 
 header h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 700;
-  background: linear-gradient(to right, #4f46e5, #ec4899);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-main);
 }
 
 header p {
@@ -71,41 +60,29 @@ header p {
 }
 
 .form-section {
-  background: rgba(255, 255, 255, 0.5);
+  background-color: #f8fafc;
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.form-section:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
 }
 
 .form-section h2 {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 600;
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  margin: 0 0 1.25rem 0;
+  color: var(--text-main);
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
 }
 
 .form-group.full-width {
@@ -114,9 +91,9 @@ header p {
 
 label {
   font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 0.4rem;
-  color: #475569;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #334155;
 }
 
 input[type="text"],
@@ -125,79 +102,45 @@ input[type="email"] {
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 0.95rem;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
-  background: white;
+  font-family: inherit;
+  background-color: #ffffff;
+  color: var(--text-main);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input[type="text"]:focus,
 input[type="email"]:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-}
-
-.file-upload {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  border: 2px dashed #cbd5e1;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.4);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.file-upload:hover {
-  border-color: var(--primary-color);
-  background: rgba(79, 70, 229, 0.05);
-}
-
-.file-upload input[type="file"] {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.file-upload-text {
-  color: var(--text-muted);
-  font-weight: 500;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
 .submit-btn {
   width: 100%;
-  padding: 1rem;
-  background: var(--primary-color);
-  color: white;
+  padding: 1.1rem;
+  background-color: var(--primary);
+  color: #ffffff;
   border: none;
   border-radius: 10px;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+  transition: background-color 0.2s, transform 0.1s;
   margin-top: 1rem;
 }
 
 .submit-btn:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.23);
+  background-color: var(--primary-hover);
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
 }
 
 .submit-btn:disabled {
-  background: #94a3b8;
+  background-color: #94a3b8;
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
 }
 
 .status-message {
@@ -206,17 +149,16 @@ input[type="email"]:focus {
   border-radius: 8px;
   text-align: center;
   font-weight: 500;
-  animation: fadeIn 0.3s;
 }
 
 .status-success {
-  background-color: #dcfce7;
-  color: #166534;
-  border: 1px solid #bbf7d0;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
 }
 
 .status-error {
-  background-color: #fee2e2;
+  background-color: #fef2f2;
   color: #991b1b;
   border: 1px solid #fecaca;
 }
@@ -228,32 +170,29 @@ input[type="email"]:focus {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(4px);
+  background-color: rgba(15, 23, 42, 0.75);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease-out;
 }
 
 .modal-content {
   width: 95vw;
   height: 95vh;
-  max-width: 1400px;
-  background: white;
-  border-radius: 16px;
+  max-width: 1200px;
+  background-color: #ffffff;
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  animation: scaleUp 0.3s ease-out;
 }
 
 .modal-header {
   padding: 1rem 1.5rem;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -262,40 +201,28 @@ input[type="email"]:focus {
 .modal-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  color: #1e293b;
+  color: var(--text-main);
 }
 
 .close-btn {
-  background: none;
+  background: transparent;
   border: none;
   font-size: 1.5rem;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
-  padding: 0.2rem 0.5rem;
   border-radius: 6px;
-  transition: all 0.2s;
 }
 
 .close-btn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+  color: var(--text-main);
+  background-color: #e2e8f0;
 }
 
 .signing-iframe {
   flex: 1;
   width: 100%;
   border: none;
-  background: #f1f5f9;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes scaleUp {
-  from { opacity: 0.9; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+  background-color: #f1f5f9;
 }
 
 /* Live Event Logs */
@@ -307,21 +234,18 @@ input[type="email"]:focus {
 }
 
 .log-window {
-  background: #0f172a;
-  border-radius: 12px;
+  background-color: #1e293b;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-  border: 1px solid #334155;
 }
 
 .log-window h3 {
-  background: #1e293b;
-  color: #e2e8f0;
+  background-color: #0f172a;
+  color: #f8fafc;
   margin: 0;
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
   font-family: monospace;
-  border-bottom: 1px solid #334155;
 }
 
 .log-scroll {
@@ -342,7 +266,7 @@ input[type="email"]:focus {
 }
 
 .log-time {
-  color: #64748b;
+  color: #94a3b8;
   margin-right: 0.5rem;
 }
 
@@ -356,17 +280,17 @@ input[type="email"]:focus {
 .tabs-container {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 2rem;
-  background: rgba(255,255,255,0.5);
+  margin-bottom: 1.5rem;
+  background-color: #f1f5f9;
   padding: 0.5rem;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  border: 1px solid var(--border);
 }
 
 .tab-btn {
   flex: 1;
   padding: 0.75rem;
-  background: transparent;
+  background-color: transparent;
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -376,23 +300,22 @@ input[type="email"]:focus {
 }
 
 .tab-btn:hover {
-  background: rgba(79, 70, 229, 0.1);
-  color: var(--primary-color);
+  background-color: #e2e8f0;
+  color: var(--text-main);
 }
 
 .tab-btn.active {
-  background: var(--primary-color);
-  color: white;
+  background-color: #ffffff;
+  color: var(--primary);
   box-shadow: var(--shadow-sm);
 }
 
 .scenario-desc {
-  background: #e0e7ff;
+  background-color: #e0e7ff;
   color: #3730a3;
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-  border-left: 4px solid var(--primary-color);
+  font-size: 0.95rem;
+  border-left: 4px solid var(--primary);
 }
-

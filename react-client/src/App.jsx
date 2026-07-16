@@ -14,7 +14,8 @@ function App() {
     eEmail: 'employee@example.com',
     jobTitle: 'Senior Software Engineer',
     startDate: '2024-09-01',
-    salary: '120,000'
+    salary: '120,000',
+    callbackUrl: 'https://webhook.site/placeholder'
   });
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: '', message: '' });
@@ -23,9 +24,7 @@ function App() {
   const [signingUrl, setSigningUrl] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Live Logs State
-  const [iframeEvents, setIframeEvents] = useState([]);
-  const [webhookEvents, setWebhookEvents] = useState([]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -83,7 +82,9 @@ function App() {
     try {
       const data = new FormData();
       data.append('workflowName', formData.workflowName);
-      data.append('callbackUrl', 'https://webhook.site/placeholder-url-for-testing');
+      if (formData.callbackUrl) {
+        data.append('callbackUrl', formData.callbackUrl);
+      }
 
       let signers = [];
 
@@ -116,6 +117,15 @@ function App() {
 
       data.append('signers', JSON.stringify(signers));
 
+      console.log("==================================================");
+      console.log("🚀 STEP 1: FRONTEND REQUEST TO C# SERVER");
+      console.log("==================================================");
+      console.log("Workflow Name:", formData.workflowName);
+      console.log("Callback URL:", formData.callbackUrl || "None");
+      console.log("Signers (JSON):", JSON.stringify(signers, null, 2));
+      console.log("Attached Documents:", data.getAll('documents').map(file => file.name));
+      console.log("--------------------------------------------------");
+
       // Make POST request to our Universal C# API
       const response = await fetch('http://localhost:5004/api/v1/Packages', {
         method: 'POST',
@@ -127,8 +137,19 @@ function App() {
 
       const result = await response.json();
 
+      console.log("==================================================");
+      console.log("📥 STEP 2: RESPONSE FROM C# SERVER");
+      console.log("==================================================");
+      console.log(JSON.stringify(result, null, 2));
+      console.log("--------------------------------------------------");
+
       if (response.ok && result.success) {
         if (result.signingUrl) {
+          console.log("==================================================");
+          console.log("🖼️ STEP 3: OPENING ONESPAN MODAL");
+          console.log("==================================================");
+          console.log("Session URL:", result.signingUrl);
+          
           setSigningUrl(result.signingUrl);
           setIsModalOpen(true);
         } else {
@@ -151,13 +172,7 @@ function App() {
       try { dataStr = typeof event.data === 'object' ? JSON.stringify(event.data) : String(event.data); } 
       catch (e) { dataStr = "Unknown Event"; }
 
-      if (dataStr.length > 5) {
-        setIframeEvents(prev => [{ time: new Date().toLocaleTimeString(), data: dataStr }, ...prev].slice(0, 15));
-      }
 
-      if (dataStr.includes('ESL:MESSAGE:REGISTER')) {
-        event.source.postMessage('ESL:MESSAGE:ACTIVATE_EVENTS', event.origin);
-      }
 
       if (dataStr.includes('ESL:MESSAGE:SUCCESS:SIGNER_COMPLETE') || dataStr.includes('PACKAGE_COMPLETE')) {
         setIsModalOpen(false);
@@ -169,20 +184,7 @@ function App() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  useEffect(() => {
-    const fetchWebhooks = async () => {
-      try {
-        const response = await fetch('http://localhost:5004/api/v1/Webhooks/events');
-        if (response.ok) {
-          const data = await response.json();
-          setWebhookEvents(data);
-        }
-      } catch (err) { }
-    };
-    const intervalId = setInterval(fetchWebhooks, 3000);
-    fetchWebhooks();
-    return () => clearInterval(intervalId);
-  }, []);
+
 
   return (
     <div className="app-container">
@@ -260,6 +262,16 @@ function App() {
           </div>
         </div>
 
+        <div className="form-section">
+          <h2>⚙️ Advanced Settings</h2>
+          <div className="form-grid">
+            <div className="form-group full-width">
+              <label>Callback URL (Where to deliver the final PDF ZIP)</label>
+              <input type="text" name="callbackUrl" value={formData.callbackUrl} onChange={handleInputChange} placeholder="https://webhook.site/..." />
+            </div>
+          </div>
+        </div>
+
         <button type="submit" className="submit-btn" disabled={loading}>
           {loading ? 'Generating PDFs & Processing...' : 'Run Scenario'}
         </button>
@@ -271,32 +283,7 @@ function App() {
         </div>
       )}
 
-      {/* Live Event Logs Dashboard */}
-      <div className="logs-container">
-        <div className="log-window">
-          <h3>🖥️ Frontend IFrame Events</h3>
-          <div className="log-scroll">
-            {iframeEvents.length === 0 ? <p className="log-empty">Waiting for iframe messages...</p> : 
-              iframeEvents.map((evt, idx) => (
-                <div key={idx} className="log-entry">
-                  <span className="log-time">[{evt.time}]</span> {evt.data}
-                </div>
-              ))}
-          </div>
-        </div>
-        
-        <div className="log-window">
-          <h3>📡 Backend Webhooks</h3>
-          <div className="log-scroll">
-            {webhookEvents.length === 0 ? <p className="log-empty">Waiting for webhooks on http://localhost:5004...</p> : 
-              webhookEvents.map((evt, idx) => (
-                <div key={idx} className="log-entry">
-                  <span className="log-time">[{new Date(evt.receivedAt).toLocaleTimeString()}]</span> {JSON.stringify(evt.payload)}
-                </div>
-              ))}
-          </div>
-        </div>
-      </div>
+
 
       {/* Embedded Signing Modal */}
       {isModalOpen && (
@@ -311,6 +298,12 @@ function App() {
               src={signingUrl} 
               title="OneSpan Signing Ceremony"
             />
+            <div style={{ padding: '10px', textAlign: 'center', backgroundColor: '#f8d7da', color: '#721c24' }}>
+               <p>If the Next button inside the iframe above is stuck, your browser might be blocking third-party cookies.</p>
+               <a href={signingUrl} target="_blank" rel="noreferrer" style={{ fontWeight: 'bold', color: '#721c24' }}>
+                  Click here to open the document safely in a new tab!
+               </a>
+            </div>
           </div>
         </div>
       )}

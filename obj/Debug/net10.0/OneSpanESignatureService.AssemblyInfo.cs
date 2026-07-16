@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OneSpanESignatureService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+770f3b10cd9bcbf769bdc321ed406faa27220dbc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+938a3288b3867201d0cd6685e06594c4dc451382")]
 [assembly: System.Reflection.AssemblyProductAttribute("OneSpanESignatureService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OneSpanESignatureService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
