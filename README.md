@@ -9,7 +9,6 @@ Our React app (the front end) sends a request to our C# server (the back end) sa
 ```json
 {
  "workflowName": "New Hire Contract",
- "callbackUrl": "https://webhook.site/placeholder-url-for-testing",
  "signers": [
    {
      "roleId": "SelfSign",
@@ -35,14 +34,6 @@ Our React app (the front end) sends a request to our C# server (the back end) sa
 - **`signers`**: The list of people signing.
   - **`signingOrder`**: Who goes first (1), who goes second (2), etc.
   - **`roleId` (The Magic Key)**: We use this to decide *how* they sign. If we tag them as `"SelfSign"`, the system will pop up a window for them to sign right now. If we tag them as `"RemoteSigner"`, the system will email them a link instead.
-- **`callbackUrl` (The Return Address)**: *See the Deep Dive box below!*
-
-> [!TIP]
-> **Deep Dive: What exactly is the `callbackUrl`?**
-> Think of the `callbackUrl` as a self-addressed stamped envelope. 
-> When our C# server sends the document to OneSpan, it sneaks this `callbackUrl` into the package's hidden backpack (called "attributes"). 
-> **Why?** Because getting signatures takes days. We don't want our React app to freeze and wait on screen for 3 days. So, the React app says, *"I'm going to close out now, but when John finally signs this 3 days from now, please mail the final `.zip` file of PDFs to this exact URL."* 
-> When the signing is finally 100% complete, the C# server will blindly obey and deliver the final files to whatever URL you typed in here, so your backend database can save the finished PDF!
 
 ---
 
@@ -85,13 +76,11 @@ Our C# server packages up the PDF and the list of signers, and hands it off to O
        }
      ]
    }
- ],
- "attributes": { "CallbackUrl": "https://webhook.site/placeholder-url-for-testing" }
+ ]
 }
 ```
 **Plain English Keys:**
 * **`extractAnchor`**: This is where we tell OneSpan to literally scan the PDF for the text `"SelfSign"` and drop a 200x50 box over it.
-* **`attributes`**: This is the hidden backpack where we hide the `callbackUrl` for later!
 
 *OneSpan replies to your C# Server: "Success! I have created the transaction. Here is your Package ID: Pkg-1234."*
 
@@ -138,43 +127,10 @@ Jane clicks "Sign" in the pop-up window. Behind the scenes, OneSpan sends a tiny
 
 ---
 
-### Step 5: The Domino Effect (Emails & Webhook)
+### Step 5: The Domino Effect (Emails)
 Because Jane was `signingOrder: 1`, she's done. OneSpan looks at the list and sees John is `signingOrder: 2`. OneSpan automatically shoots John an email saying *"It's your turn to sign."*
 
-Three days later, John clicks his email and signs it. The document is 100% complete! OneSpan immediately yells out to our C# server (via a "webhook"): *"HEY! The package is completely finished!"*
-
-**The Webhook Data OneSpan sends to C#:**
-```json
-{
-  "@class": "com.silanis.esl.packages.event.ESLProcessEvent",
-  "name": "PACKAGE_COMPLETE",
-  "sessionUser": "0787be84-...",
-  "packageId": "Pkg-1234",
-  "message": null,
-  "documentId": null
-}
-```
-**Plain English Keys:**
-* **`name`**: The specific event that happened (`"PACKAGE_COMPLETE"` means everyone is finally done).
-* **`packageId`**: The ID of the transaction. The C# server uses this to go fetch the final `.zip` file from OneSpan.
-
----
-
-### Step 6: The Final Delivery
-Our C# server hears the webhook, runs over to OneSpan, downloads the final, legally-signed PDF as a `.zip` file, and looks in the hidden backpack for the `CallbackUrl`. It delivers the ZIP file straight to that URL!
-
-**The Final Data C# sends to the Callback URL:**
-```http
-POST https://webhook.site/placeholder-url-for-testing
-Content-Type: multipart/form-data; boundary=---Boundary123
-
------Boundary123
-Content-Disposition: form-data; name="document"; filename="signed_package_Pkg-1234.zip"
-Content-Type: application/zip
-
-[BINARY ZIP FILE DATA]
------Boundary123--
-```
+Three days later, John clicks his email and signs it. The document is 100% complete!
 
 ## 3. Visual Picture
 
@@ -183,17 +139,55 @@ sequenceDiagram
     participant React as React Website
     participant C as C# Server
     participant OneSpan as OneSpan
-    participant Callback as Callback URL (Return Address)
 
-    React->>C: 1. POST /Packages (Payload includes signers & callbackUrl)
-    C->>OneSpan: 2. Create Package (Payload includes invisible tags & hidden callbackUrl)
+    React->>C: 1. POST /Packages (Payload includes signers)
+    C->>OneSpan: 2. Create Package (Payload includes invisible tags)
     OneSpan-->>C: 3. Done!
     C->>OneSpan: 4. Request VIP Token for "SelfSign"
     OneSpan-->>C: 5. Token: { "value": "abc-xyz-789" }
     C-->>React: 6. Here is the signingUrl!
     React->>OneSpan: 7. Pops open iframe so Manager can sign right now!
-    OneSpan->>C: 8. Wait 3 days... PACKAGE_COMPLETE Webhook
-    C->>OneSpan: 9. Give me the final signed PDFs.
-    OneSpan-->>C: 10. [Binary ZIP Data]
-    C->>Callback: 11. Delivers the ZIP file to the Callback URL.
 ```
+
+## 4. How to Run Locally
+
+Follow these steps to run the full application (frontend and backend) on your local machine.
+
+### Prerequisites
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download) (or the relevant version installed on your machine)
+- [Node.js](https://nodejs.org/) (for the React frontend)
+- A OneSpan Sandbox Account (for your API Key)
+
+### Step 1: Configure the Backend
+1. Open the `appsettings.json` file in the root directory.
+2. Update the `OneSpan` section with your sandbox credentials:
+   ```json
+   "OneSpan": {
+     "ApiKey": "YOUR_ONESPAN_API_KEY",
+     "ApiUrl": "https://sandbox.esignlive.com/api"
+   }
+   ```
+   *(Note: You can also use the `.env` file for setting environment variables).*
+
+### Step 2: Start the Backend (.NET Server)
+1. Open a terminal in the root directory (`onespan-esignature-service`).
+2. Run the following command to start the server:
+   ```bash
+   dotnet run
+   ```
+   The backend will start and typically listen on `http://localhost:5000` or `https://localhost:5001`.
+
+### Step 3: Start the Frontend (React Client)
+1. Open a new terminal and navigate to the `react-client` folder:
+   ```bash
+   cd react-client
+   ```
+2. Install the frontend dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+4. The React application will be available at the URL shown in your terminal (usually `http://localhost:5173`).
